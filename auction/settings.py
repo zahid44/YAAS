@@ -60,7 +60,7 @@ ROOT_URLCONF = 'auction.urls'
 TEMPLATES = [
     {
         'BACKEND': 'django.template.backends.django.DjangoTemplates',
-        'DIRS': ['templates'],
+        'DIRS': ['/home/zahid44/YAAS/templates'],
         'APP_DIRS': True,
         'OPTIONS': {
             'context_processors': [
