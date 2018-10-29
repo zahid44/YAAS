@@ -1,0 +1,126 @@
+{% extends "base.html" %}
+{% load djmoney %}
+{% load extras %}
+{% load sorl_thumbnail %}
+
+{% block js %}
+<script type="text/javascript">
+	$(document).ready(function(){
+		$('#bidthis').click(function(){
+			$("#bid_form").show();
+		});
+	});
+</script>
+{% endblock %}
+
+{% block body %}
+<div class="row">
+	<div class="col-md-12">
+		<h1>{{ q.title }}</h1>
+		<div class="panel panel-primary">
+			<div class="panel-body">
+				<div style="float:left; padding-left: 20px; padding-right: 20px;">
+					<div><b>Bids</b></div>
+					<span>{{ q.bid_set.all|length }}</span>
+				</div>
+				<div style="float:left; padding-left: 20px; padding-right: 20px;">
+					<div><b>Bid Average</b></div>
+					<span>{% money_localize q.get_average q.price.currency %}</span>
+				</div>
+				<div style="float:left; padding-left: 20px; padding-right: 20px;">
+					<div><b>Budget</b></div>
+					<span>{{ q.price }}</span>
+				</div>
+				<div style="float:right; padding-left: 20px; padding-right: 20px;">
+					<div><b>{{ q.get_status_display }}</b></div>
+					<span>{{ q.time_left }}</span>
+				</div>
+			</div>
+		</div>
+		<div class="panel panel-primary">
+			<div class="panel-body">
+				<div>
+					<b>Project Description</b>
+					{% if q.account != user.profile and user.profile not in q.bid_set.all|has_group %}
+					{% if user.is_authenticated %}
+					<button class="btn btn-primary pull-right" id="bidthis">Bid This</button>
+					{% else %}
+					<a href="/login/?next=/post/{{q.slug}}/{{q.id}}/" class="btn btn-primary pull-right">Bid This</a>
+					{% endif %}
+					{% endif %}
+				</div>
+				{{ q.description }}
+				<h2>About Seller</h2>
+				{{ q.account }}
+			</div>
+		</div>
+	</div>
+	{% if q.account != user.profile or user.is_authenticated %}
+	<div class="col-md-12" id="bid_form" style="{% if form.errors %} display: block; {% else %} display: none; {% endif %}">
+		<div class="panel panel-primary">
+			<form action="." method="POST">{% csrf_token %}
+				<div class="panel-body">
+					{% for field in form %}
+						{{ field }}
+						{{ field.errors.as_text }}
+					{% endfor %}
+					<button type="submit" class="btn btn-primary pull-right">Submit</button>
+				</div>
+			</form>
+		</div>
+	</div>
+	{% endif %}
+	<div class="col-md-12">
+		<div class="panel panel-primary">
+			<div class="panel-heading">Biddings ({{ q.bid_set.all|length }})</div>
+			<div class="panel-body">
+				{% for i in q.bid_set.all %}
+					<div class="media" style="background-color:white;">
+						<a class="pull-left" href="#">
+							{% thumbnail i.bidder.photo_url "40x40" crop="center" as im %}
+		                        <img src="{{ im.url }}" width="{{ im.width }}" height="{{ im.height }}" class="media-object photo-profile img-circle">
+		                    {% empty %}
+		                        <img src="{{ i.bidder.photo_url }}" width="40" height="40" class="media-object photo-profile img-circle">
+		                    {% endthumbnail %}
+	                	</a>
+	                	<div class="media-body">
+							<b>{{ i.bidder }}</b>
+							<span class="pull-right">{{ i.get_time }}</span>
+							<div>
+								<h3>{% money_localize i.bid_price q.price.currency %}</h3>
+							</div>
+							{% if i.bidder == user.profile %}
+								<button type="button" class="btn blue btn-outline sbold uppercase pull-right" data-toggle="modal" data-target="#{{ i.id }}">Edit</button>
+								<div id="{{ i.id }}" class="modal fade" role="dialog">
+									<div class="modal-dialog">
+										<form action="{% url 'edit_bid' id=i.id %}" method="POST" enctype="multipart/form-data">{% csrf_token %}
+											<div class="modal-content">
+								  				<div class="modal-header">
+								    				<button type="button" class="close" data-dismiss="modal">&times;</button>
+								    				<h4 class="modal-title">Transaction</h4>
+								  				</div>
+								  				<div class="modal-body">
+													<div class="form-body">
+														<label>Price</label>
+														<input type="text" class="form-control" name="price" value="{{ i.price }}">
+												    </div>
+								  				</div>
+								  				<div class="modal-footer">
+								    				<div class="form-actions">
+												    	<input type="submit" class="btn btn-primary pull-right">
+												    </div>
+								  				</div>
+											</div>
+										</form>
+									</div>
+								</div>
+							{% endif %}
+						</div>
+					</div>
+					<hr>
+				{% endfor %}
+			</div>
+		</div>
+	</div>
+</div>
+{% endblock %}

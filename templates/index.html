@@ -1,0 +1,46 @@
+{% extends "base.html" %}
+
+{% block body %}
+<div class="col-md-12">
+{% for i in datas %}
+	<div class="row">
+		<div class="col-md-12">
+			<div class="col-md-9">
+				<a href="{% url 'auction_detail' slug=i.slug id=i.id %}"><b style="font-size: 20px;">{{ i.title }}</b></a>
+				<p style="line-height: 25px;">{{ i.description }}</p>
+				<span>{{ i.account }}</span>
+				<div>{{ i.time_left }}</div>
+				<div>{{ i.bid_set.all|length }} Bid</div>
+			</div>
+			<div class="col-md-3">
+				<span class="pull-right">
+					<b>{{ i.price }}</b>
+					{% if user.profile == i.account %}
+						<a href="{% url 'edit_auction' id=i.id %}">Edit</a>
+					{% endif %}
+				</span>
+			</div>
+		</div>
+	</div><hr>
+{% endfor %}
+</div>
+<div class="col-md-4 col-md-offset-4">
+	<div class="pagination">
+	    <span class="step-links">
+	        {% if datas.has_previous %}
+	            <a href="?page=1">&laquo; first</a>
+	            <a href="?page={{ datas.previous_page_number }}">previous</a>
+	        {% endif %}
+
+	        <span class="current">
+	            Page {{ datas.number }} of {{ datas.paginator.num_pages }}.
+	        </span>
+
+	        {% if datas.has_next %}
+	            <a href="?page={{ datas.next_page_number }}">next</a>
+	            <a href="?page={{ datas.paginator.num_pages }}">last &raquo;</a>
+	        {% endif %}
+	    </span>
+	</div>
+</div>
+{% endblock %}
